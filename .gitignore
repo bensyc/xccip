@@ -1,2 +1,11 @@
 cache/
-out/
+.env
+*/.DS_store
+.DS_store
+broadcast/*/*/*
+!broadcast/*/*/run-latest.json
+
+out/*/*
+!out/BENSYC.sol/*
+!out/Resolver.sol/*
+!out/XCCIP.sol/*
