@@ -15,7 +15,6 @@ abstract contract Clone {
     iENS public immutable ENS; // ENS Contract
 
     bytes32 public immutable baseHash; // ens namehash of ".eth"
-    bytes32 public immutable secondaryLabelHash; // keccak256 hash of "bensyc"
     bytes32 public immutable secondaryDomainHash; // ENS namehash of "bensyc.eth"
     bytes32 public immutable primaryDomainHash; // ENS namehash of "boredensyachtclub.eth"
 
@@ -30,8 +29,7 @@ abstract contract Clone {
         BENSYC = iBENSYC(0xd3E58Bf93A1ad3946bfD2D298b964d4eCe1A9E7E);
         ENS = iENS(0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e);
         baseHash = keccak256(abi.encodePacked(bytes32(0), keccak256("eth")));
-        secondaryLabelHash = keccak256("bensyc");
-        secondaryDomainHash = keccak256(abi.encodePacked(baseHash, secondaryLabelHash));
+        secondaryDomainHash = keccak256(abi.encodePacked(baseHash, keccak256("bensyc")));
         primaryDomainHash = keccak256(abi.encodePacked(baseHash, keccak256("boredensyachtclub")));
         URLS.push(string("https://ipfs.io/ipfs/QmcPEfYSHc3fNkrjDnMb5h84nYsXJ7okARG9PFWyYkkvh2/ccip.json?{data}"));
         URLS.push(string("https://bafybeigqvuwcvttbeiz64ed7c27kz6zrkwstp6gubbhfkjnxnvfbbnvgzu.ipfs.dweb.link/ccip.json?{data}"));

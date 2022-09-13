@@ -1,0 +1,1 @@
+source .env && forge script ./script/XCCIP.s.sol --rpc-url $MAINNET_RPC_URL -vvv RUST_BACKTRACE=full

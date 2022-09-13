@@ -209,6 +209,97 @@ contract XCCIPTest is Test {
             _result
         );
     }
+
+    function testResolveRevert2() public {
+        bytes[] memory _src = new bytes[](2);
+        _src[0] = "bensyc";
+        _src[1] = "eth";
+        (bytes32 _srcNamehash, bytes memory _srcName)= ENSEncode(_src);
+        bytes memory _calldata = abi.encodeWithSelector(iResolver.text.selector, _srcNamehash, string("avatar"));
+        bytes32 _dstNamehash = xccip.ENSDecode(_srcName);
+        _calldata = CDCheck.getCallData(_dstNamehash, _calldata);
+        bytes memory _result = xccip.getResult(_dstNamehash, _calldata);
+        string[] memory _gateways = new string[](2);
+        _gateways[0] = xccip.URLS(0);
+        _gateways[1] = xccip.URLS(1);
+        bytes memory extradata = abi.encode(
+                    keccak256(
+                        abi.encodePacked(
+                            blockhash(block.number - 1),
+                            address(xccip),
+                            address(this),
+                            _dstNamehash,
+                            _calldata,
+                            _result
+                        )
+                    ),
+                    block.number,
+                    _dstNamehash,
+                    _calldata
+                );
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Clone.OffchainLookup.selector, 
+                address(xccip),
+                _gateways,
+                _result,
+                XCCIP.resolveWithoutProof.selector,
+                extradata
+            )
+        );
+        xccip.resolve(_srcName, _calldata);
+        assertEq(
+            xccip.resolveWithoutProof(bytes("TEST"), extradata), 
+            _result
+        );
+    }
+
+    function testResolveRevert3() public {
+        bytes[] memory _src = new bytes[](3);
+        _src[0] = "0";
+        _src[1] = "bensyc";
+        _src[2] = "eth";
+        (bytes32 _srcNamehash, bytes memory _srcName)= ENSEncode(_src);
+        bytes memory _calldata = abi.encodeWithSelector(iResolver.addr.selector, _srcNamehash); 
+        bytes32 _dstNamehash = xccip.ENSDecode(_srcName);
+        _calldata = CDCheck.getCallData(_dstNamehash, _calldata);
+        bytes memory _result = xccip.getResult(_dstNamehash, _calldata);
+        string[] memory _gateways = new string[](2);
+        _gateways[0] = xccip.URLS(0);
+        _gateways[1] = xccip.URLS(1);
+        bytes memory extradata = abi.encode(
+                    keccak256(
+                        abi.encodePacked(
+                            blockhash(block.number - 1),
+                            address(xccip),
+                            address(this),
+                            _dstNamehash,
+                            _calldata,
+                            _result
+                        )
+                    ),
+                    block.number,
+                    _dstNamehash,
+                    _calldata
+                );
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                Clone.OffchainLookup.selector, 
+                address(xccip),
+                _gateways,
+                _result,
+                XCCIP.resolveWithoutProof.selector,
+                extradata
+            )
+        );
+        xccip.resolve(_srcName, _calldata);
+        assertEq(
+            xccip.resolveWithoutProof(bytes("TEST"), extradata), 
+            _result
+        );
+    }
 }
 contract CallDataCheck{
     function getCallData(bytes32 _namehash, bytes calldata data) public pure returns(bytes memory) {
