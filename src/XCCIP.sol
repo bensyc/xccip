@@ -33,8 +33,8 @@ abstract contract Clone {
         secondaryLabelHash = keccak256("bensyc");
         secondaryDomainHash = keccak256(abi.encodePacked(baseHash, secondaryLabelHash));
         primaryDomainHash = keccak256(abi.encodePacked(baseHash, keccak256("boredensyachtclub")));
-        URLS.push(string("https://ipfs.io/ipfs/<ipfs_hash>/ccip.json?{data}"));
-        URLS.push(string("https://dweb.link/ipfs/<ipfs_hash>/ccip.json?{data}"));
+        URLS.push(string("https://ipfs.io/ipfs/QmcPEfYSHc3fNkrjDnMb5h84nYsXJ7okARG9PFWyYkkvh2/ccip.json?{data}"));
+        URLS.push(string("https://bafybeigqvuwcvttbeiz64ed7c27kz6zrkwstp6gubbhfkjnxnvfbbnvgzu.ipfs.dweb.link/ccip.json?{data}"));
     }
     string[] public URLS;
 
