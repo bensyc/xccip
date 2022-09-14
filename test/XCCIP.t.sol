@@ -124,20 +124,8 @@ contract XCCIPTest is Test {
         (bytes32 _namehash, )= ENSEncode(_dst);
 
         assertEq(xccip.ENSDecode(_name), _namehash);
-    } 
-
-    function testIsNFT() public{
-        assertTrue(xccip.isNFT("0"));
-        assertTrue(xccip.isNFT("69")); // after minting
-        assertTrue(!xccip.isNFT("9999")); // before minting
-        assertTrue(!xccip.isNFT("124abcd"));
-        assertTrue(!xccip.isNFT("abcdef"));
-        assertTrue(!xccip.isNFT("10000"));
-
-        // _bug/corner case
-        assertTrue(xccip.isNFT("001"));
     }
-
+    
     function testGetResult() public{
         bytes[] memory _dst = new bytes[](2);
         _dst[0] = "boredensyachtclub";

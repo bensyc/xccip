@@ -119,18 +119,6 @@ contract XCCIP is Clone {
     function supportsInterface(bytes4 sig) external pure returns(bool) {
         return (sig == XCCIP.resolve.selector || sig == XCCIP.supportsInterface.selector);
     }
-
-    function isNFT(bytes memory _label) public view returns(bool) {
-        uint len = _label.length;
-        uint k = 0;
-        unchecked {
-            for (uint i = 0; i < len; i++) {
-                if (_label[i] < 0x30 || _label[i] > 0x39) return false;
-                k = (k * 10) + (uint8(_label[i]) - 48);
-            }
-        }
-        return (k < BENSYC.totalSupply());
-    }
     /**
      * @dev : dnsDecode()
      * @param name : dns encoded domain name
@@ -150,14 +138,21 @@ contract XCCIP is Clone {
         }
         if (_index > 2){ // ..*.bensyc.eth
             unchecked{
-                _namehash = baseHash;
                 _index -= 3; //index of ...<*>.bensyc.eth
                 _namehash = keccak256(
                     abi.encodePacked(
-                        isNFT(labels[_index]) ? primaryDomainHash : _namehash,
+                        primaryDomainHash,
                         keccak256(labels[_index])
                     )
                 );
+                if(ENS.resolver(_namehash) == address(0)){
+                    _namehash = keccak256(
+                        abi.encodePacked(
+                            baseHash,
+                            keccak256(labels[_index])
+                        )
+                    );
+                }
                 while (_index > 0) {
                     _namehash = keccak256(
                         abi.encodePacked(
