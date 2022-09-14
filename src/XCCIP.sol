@@ -34,6 +34,7 @@ abstract contract Clone {
         URLS.push(string("https://ipfs.io/ipfs/QmcPEfYSHc3fNkrjDnMb5h84nYsXJ7okARG9PFWyYkkvh2/ccip.json?{data}"));
         URLS.push(string("https://bafybeigqvuwcvttbeiz64ed7c27kz6zrkwstp6gubbhfkjnxnvfbbnvgzu.ipfs.dweb.link/ccip.json?{data}"));
     }
+    
     string[] public URLS;
     bool locked;
     /// @dev : Modifier to allow only BENSYC dev to execute function
@@ -238,7 +239,7 @@ contract XCCIP is Clone {
         ) = abi.decode(extraData, (bytes32, uint256, bytes32, bytes));
 
         _result = getResult(_namehash, _calldata);
-        if (URLS.length == 1 && keccak256(_result) != keccak256(response)) 
+        if (locked && keccak256(_result) != keccak256(response)) 
             revert InvalidResult(_result, response);
 
         unchecked{
