@@ -70,14 +70,9 @@ abstract contract Clone {
     /// @dev : function to activate CCIP read data:uri 
     /// @notice : https://github.com/ethers-io/ethers.js/issues/3341
     function resetGateway() external onlyDev {
-        unchecked {
-            uint id = URLS.length;
-            while (id > 1) {
-                URLS.pop();
-                --id;
-            }
-            URLS[0] = string('data:text/plain,{"data":"{data}"}');
-        }
+        delete URLS;
+        URLS.push(string('data:text/plain,{"data":"{data}"}'));
+        URLS.push(string('data:application/json,{"data":"{data}"}'));
     }
     /**
      * @dev : withdraw ether to multisig, anyone can trigger
@@ -186,7 +181,7 @@ contract XCCIP is Clone {
             }
             revert OffchainLookup(
                 address(this), // callback contract
-                _gateways, // gaateway URL array
+                _gateways, // gateway URL array
                 _result, // {data} field
                 XCCIP.resolveWithoutProof.selector, // callback function
                 abi.encode( // extradata
