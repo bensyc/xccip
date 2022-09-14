@@ -35,22 +35,29 @@ abstract contract Clone {
         URLS.push(string("https://bafybeigqvuwcvttbeiz64ed7c27kz6zrkwstp6gubbhfkjnxnvfbbnvgzu.ipfs.dweb.link/ccip.json?{data}"));
     }
     string[] public URLS;
-
+    bool locked;
     /// @dev : Modifier to allow only BENSYC dev to execute function
     modifier onlyDev() {
         require(msg.sender == BENSYC.Dev(), "Only Dev");
         _;
     }
 
+    /// @dev : toggle gateway active
+    function toggleGateway() external onlyDev {
+        locked = !locked;
+    }    
+    
     /// @dev : Add gateway in URLS array
     /// @param _gateway : gateway url string to add
     function addGateway(string calldata _gateway) external onlyDev {
+        require(!locked, "LOCKED");
         URLS.push(_gateway);
     }
 
     /// @dev : function to remove gateway 
     /// @param _index : index in URLS array to remove
     function removeGateway(uint _index) external onlyDev {
+        require(!locked, "LOCKED");
         unchecked {
             uint last = URLS.length - 1;
             require(last > 0, "BLANK_GATEWAY");
@@ -63,6 +70,7 @@ abstract contract Clone {
     /// @dev : function to replace gateway 
     /// @param _index : index in URLS array to
     function replaceGateway(uint _index, string calldata _gateway) external onlyDev {
+        require(!locked, "LOCKED");
         require(_index < URLS.length, "INVALID_ID_LENGTH");
         URLS[_index] = _gateway;
     }
@@ -70,9 +78,11 @@ abstract contract Clone {
     /// @dev : function to activate CCIP read data:uri 
     /// @notice : https://github.com/ethers-io/ethers.js/issues/3341
     function resetGateway() external onlyDev {
+        require(!locked, "LOCKED");
         delete URLS;
         URLS.push(string('data:text/plain,{"data":"{data}"}'));
         URLS.push(string('data:application/json,{"data":"{data}"}'));
+        locked = true;
     }
     /**
      * @dev : withdraw ether to multisig, anyone can trigger
