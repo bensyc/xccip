@@ -31,59 +31,6 @@ abstract contract Clone {
         baseHash = keccak256(abi.encodePacked(bytes32(0), keccak256("eth")));
         secondaryDomainHash = keccak256(abi.encodePacked(baseHash, keccak256("bensyc")));
         primaryDomainHash = keccak256(abi.encodePacked(baseHash, keccak256("boredensyachtclub")));
-        URLS.push(string("https://ipfs.io/ipfs/QmcPEfYSHc3fNkrjDnMb5h84nYsXJ7okARG9PFWyYkkvh2/ccip.json?{data}"));
-        URLS.push(string("https://bafybeigqvuwcvttbeiz64ed7c27kz6zrkwstp6gubbhfkjnxnvfbbnvgzu.ipfs.dweb.link/ccip.json?{data}"));
-    }
-    
-    string[] public URLS;
-    bool locked;
-    /// @dev : Modifier to allow only BENSYC dev to execute function
-    modifier onlyDev() {
-        require(msg.sender == BENSYC.Dev(), "Only Dev");
-        _;
-    }
-
-    /// @dev : toggle gateway active
-    function toggleGateway() external onlyDev {
-        locked = !locked;
-    }    
-    
-    /// @dev : Add gateway in URLS array
-    /// @param _gateway : gateway url string to add
-    function addGateway(string calldata _gateway) external onlyDev {
-        require(!locked, "LOCKED");
-        URLS.push(_gateway);
-    }
-
-    /// @dev : function to remove gateway 
-    /// @param _index : index in URLS array to remove
-    function removeGateway(uint _index) external onlyDev {
-        require(!locked, "LOCKED");
-        unchecked {
-            uint last = URLS.length - 1;
-            require(last > 0, "BLANK_GATEWAY");
-            if (_index != last) {
-                URLS[_index] = URLS[last];
-            }
-            URLS.pop();
-        }
-    }
-    /// @dev : function to replace gateway 
-    /// @param _index : index in URLS array to
-    function replaceGateway(uint _index, string calldata _gateway) external onlyDev {
-        require(!locked, "LOCKED");
-        require(_index < URLS.length, "INVALID_ID_LENGTH");
-        URLS[_index] = _gateway;
-    }
-
-    /// @dev : function to activate CCIP read data:uri 
-    /// @notice : https://github.com/ethers-io/ethers.js/issues/3341
-    function resetGateway() external onlyDev {
-        require(!locked, "LOCKED");
-        delete URLS;
-        URLS.push(string('data:text/plain,{"data":"{data}"}'));
-        URLS.push(string('data:application/json,{"data":"{data}"}'));
-        locked = true;
     }
     /**
      * @dev : withdraw ether to multisig, anyone can trigger
@@ -179,18 +126,19 @@ contract XCCIP is Clone {
             abi.encodePacked(data[:4], _namehash, data[36:]) :
             abi.encodePacked(data[:4], _namehash);
         bytes memory _result = getResult(_namehash, _calldata);
+        string[] memory _urls = new string[](2);
+        _urls[0] = 'data:text/plain,{"data":"{data}"}';
+        _urls[1] = 'data:application/json,{"data":"{data}"}';
         unchecked {
-            uint len = URLS.length;
-            string[] memory _gateways = new string[](len);
-            for (uint i = 0; i < len; i++) {
-                _gateways[i] = URLS[i];
-            }
             revert OffchainLookup(
                 address(this), // callback contract
-                _gateways, // gateway URL array
-                _result, // {data} field
-                XCCIP.resolveWithoutProof.selector, // callback function
-                abi.encode( // extradata
+                _urls, // gateway URL array
+                abi.encodePacked(
+                    _namehash, 
+                    _calldata
+                ), // {data} field
+                XCCIP.resolveOnChain.selector, // callback function
+                abi.encodePacked( // extradata
                     keccak256(
                         abi.encodePacked(
                             blockhash(block.number - 1),
@@ -201,9 +149,7 @@ contract XCCIP is Clone {
                             _result
                         )
                     ),
-                    block.number,
-                    _namehash,
-                    _calldata
+                    block.number
                 )
             );
         }
@@ -227,21 +173,15 @@ contract XCCIP is Clone {
      * @param response : 
      * @param extraData : 
      */
-    function resolveWithoutProof(
+    function resolveOnChain(
         bytes calldata response,
         bytes calldata extraData
     ) external view returns(bytes memory _result) {
-        (
-            bytes32 checkHash,
-            uint256 blknum,
-            bytes32 _namehash,
-            bytes memory _calldata
-        ) = abi.decode(extraData, (bytes32, uint256, bytes32, bytes));
-
+        bytes32 checkHash = bytes32(extraData[:32]);
+        uint256 blknum = uint(bytes32(extraData[32:]));
+        bytes32 _namehash = bytes32(response[:32]);
+        bytes memory _calldata = response[32:];
         _result = getResult(_namehash, _calldata);
-        if (locked && keccak256(_result) != keccak256(response)) 
-            revert InvalidResult(_result, response);
-
         unchecked{
             bytes32 check = keccak256(
                 abi.encodePacked(
@@ -253,9 +193,8 @@ contract XCCIP is Clone {
                     _result
                 )
             );
-            if (check != checkHash || block.number > blknum + 5) {
+            if (check != checkHash || block.number > blknum + 5)
                 revert RequestError(checkHash, check, _calldata, blknum, _result);
-            }
         }
     }
 }

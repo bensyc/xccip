@@ -163,9 +163,9 @@ contract XCCIPTest is Test {
         _calldata = CDCheck.getCallData(_dstNamehash, _calldata);
         bytes memory _result = xccip.getResult(_dstNamehash, _calldata);
         string[] memory _gateways = new string[](2);
-        _gateways[0] = xccip.URLS(0);
-        _gateways[1] = xccip.URLS(1);
-        bytes memory extradata = abi.encode(
+        _gateways[0] = 'data:text/plain,{"data":"{data}"}';
+        _gateways[1] = 'data:application/json,{"data":"{data}"}';
+        bytes memory extradata = abi.encodePacked(
                     keccak256(
                         abi.encodePacked(
                             blockhash(block.number - 1),
@@ -176,9 +176,7 @@ contract XCCIPTest is Test {
                             _result
                         )
                     ),
-                    block.number,
-                    _dstNamehash,
-                    _calldata
+                    block.number
                 );
 
         vm.expectRevert(
@@ -186,31 +184,39 @@ contract XCCIPTest is Test {
                 Clone.OffchainLookup.selector, 
                 address(xccip),
                 _gateways,
-                _result,
-                XCCIP.resolveWithoutProof.selector,
+                abi.encodePacked(
+                    _dstNamehash, 
+                    _calldata
+                ),
+                XCCIP.resolveOnChain.selector,
                 extradata
             )
         );
         xccip.resolve(_srcName, _calldata);
         assertEq(
-            xccip.resolveWithoutProof(bytes("TEST"), extradata), 
+            xccip.resolveOnChain(
+                abi.encodePacked(
+                    _dstNamehash, 
+                    _calldata
+                ), 
+                extradata), 
             _result
         );
     }
-
     function testResolveRevert2() public {
-        bytes[] memory _src = new bytes[](2);
-        _src[0] = "bensyc";
-        _src[1] = "eth";
+        bytes[] memory _src = new bytes[](3);
+        _src[0] = "vitalik";
+        _src[1] = "bensyc";
+        _src[2] = "eth";
         (bytes32 _srcNamehash, bytes memory _srcName)= ENSEncode(_src);
-        bytes memory _calldata = abi.encodeWithSelector(iResolver.text.selector, _srcNamehash, string("avatar"));
+        bytes memory _calldata = abi.encodeWithSelector(iResolver.addr.selector, _srcNamehash); 
         bytes32 _dstNamehash = xccip.ENSDecode(_srcName);
         _calldata = CDCheck.getCallData(_dstNamehash, _calldata);
         bytes memory _result = xccip.getResult(_dstNamehash, _calldata);
         string[] memory _gateways = new string[](2);
-        _gateways[0] = xccip.URLS(0);
-        _gateways[1] = xccip.URLS(1);
-        bytes memory extradata = abi.encode(
+        _gateways[0] = 'data:text/plain,{"data":"{data}"}';
+        _gateways[1] = 'data:application/json,{"data":"{data}"}';
+        bytes memory extradata = abi.encodePacked(
                     keccak256(
                         abi.encodePacked(
                             blockhash(block.number - 1),
@@ -221,9 +227,7 @@ contract XCCIPTest is Test {
                             _result
                         )
                     ),
-                    block.number,
-                    _dstNamehash,
-                    _calldata
+                    block.number
                 );
 
         vm.expectRevert(
@@ -231,18 +235,25 @@ contract XCCIPTest is Test {
                 Clone.OffchainLookup.selector, 
                 address(xccip),
                 _gateways,
-                _result,
-                XCCIP.resolveWithoutProof.selector,
+                abi.encodePacked(
+                    _dstNamehash, 
+                    _calldata
+                ),
+                XCCIP.resolveOnChain.selector,
                 extradata
             )
         );
         xccip.resolve(_srcName, _calldata);
         assertEq(
-            xccip.resolveWithoutProof(bytes("TEST"), extradata), 
+            xccip.resolveOnChain(
+                abi.encodePacked(
+                    _dstNamehash, 
+                    _calldata
+                ), 
+                extradata), 
             _result
         );
     }
-
     function testResolveRevert3() public {
         bytes[] memory _src = new bytes[](3);
         _src[0] = "0";
@@ -254,9 +265,9 @@ contract XCCIPTest is Test {
         _calldata = CDCheck.getCallData(_dstNamehash, _calldata);
         bytes memory _result = xccip.getResult(_dstNamehash, _calldata);
         string[] memory _gateways = new string[](2);
-        _gateways[0] = xccip.URLS(0);
-        _gateways[1] = xccip.URLS(1);
-        bytes memory extradata = abi.encode(
+        _gateways[0] = 'data:text/plain,{"data":"{data}"}';
+        _gateways[1] = 'data:application/json,{"data":"{data}"}';
+        bytes memory extradata = abi.encodePacked(
                     keccak256(
                         abi.encodePacked(
                             blockhash(block.number - 1),
@@ -267,9 +278,7 @@ contract XCCIPTest is Test {
                             _result
                         )
                     ),
-                    block.number,
-                    _dstNamehash,
-                    _calldata
+                    block.number
                 );
 
         vm.expectRevert(
@@ -277,14 +286,22 @@ contract XCCIPTest is Test {
                 Clone.OffchainLookup.selector, 
                 address(xccip),
                 _gateways,
-                _result,
-                XCCIP.resolveWithoutProof.selector,
+                abi.encodePacked(
+                    _dstNamehash, 
+                    _calldata
+                ),
+                XCCIP.resolveOnChain.selector,
                 extradata
             )
         );
         xccip.resolve(_srcName, _calldata);
         assertEq(
-            xccip.resolveWithoutProof(bytes("TEST"), extradata), 
+            xccip.resolveOnChain(
+                abi.encodePacked(
+                    _dstNamehash, 
+                    _calldata
+                ), 
+                extradata), 
             _result
         );
     }
